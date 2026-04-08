@@ -2,14 +2,23 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 從 Secrets 自動讀取
-api_key = st.secrets["GEMINI_API_KEY"]
-genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.set_page_config(page_title="AI 食物營養分析師", layout="centered")
+# 安全地從 Secrets 獲取 API Key
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception:
+    st.error("請在 Secrets 中設定 GEMINI_API_KEY")
+    st.stop()
 
-st.title("🥗 AI 食物組成與營養分析")
+st.title("🥗 AI 食物組成分析")
+
+# 之後的代碼保持不變...
+img_file = st.camera_input("拍照分析食物")
+if img_file:
+    # 進行影像辨識處理
+    pass
 st.write("請對準食物拍照，AI 將自動分析其內容物。")
 
 # 調用相機
