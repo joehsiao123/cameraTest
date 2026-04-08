@@ -2,8 +2,9 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 設定 Google Gemini API (請替換為你的 API Key)
-genai.configure(api_key="你的_GEMINI_API_KEY")
+# 從 Secrets 自動讀取
+api_key = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="AI 食物營養分析師", layout="centered")
