@@ -1,5 +1,2 @@
-streamlit==1.31.0
-pandas>=2.0.0
-numpy
-pillow
-streamlit-webrtc  # 如果你有用這個進階功能
+streamlit
+Pillow
