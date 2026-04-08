@@ -80,19 +80,48 @@ with col3:
     st.write("**雞肉飯糰**\n中規中矩，但纖維質明顯不足")
     if st.button("加入紀錄", key="h3"): add_entry("超商雞肉飯糰")
 
-# --- 5. 數據分析報表 ---
+# --- 5. 動態 AI 健康診斷系統 ---
 st.divider()
-st.subheader("📝 詳細數據清單")
 if st.session_state.daily_logs:
-    df_logs = pd.DataFrame(st.session_state.daily_logs)
-    st.data_editor(df_logs, use_container_width=True)
+    st.subheader("🤖 AI 專屬健康報告")
     
-    # 額外的健康洞察
-    st.subheader("🔍 AI 健康建議")
-    total_sodium = df_logs['鈉(mg)'].sum()
-    if total_sodium > 2400:
-        st.warning("⚠️ 今日鈉攝取已超標！建議多喝水，並補充含鉀食物（如香蕉、菠菜）幫助排鈉。")
-    
-    total_fiber = df_logs['纖維(g)'].sum()
-    if total_fiber < 15:
-        st.info("🥬 纖維質攝取偏低，下午茶可以考慮吃一份水果或一小把堅果。")
+    if st.button("🪄 生成今日深度分析報告", type="primary"):
+        with st.spinner("AI 正在閱讀您的飲食紀錄..."):
+            # 準備數據摘要
+            df_summary = pd.DataFrame(st.session_state.daily_logs)
+            total_data = {
+                "熱量": df_summary['熱量(kcal)'].sum(),
+                "蛋白質": df_summary['蛋白質(g)'].sum(),
+                "糖分": df_summary['糖(g)'].sum(),
+                "纖維": df_summary['纖維(g)'].sum(),
+                "鈉": df_summary['鈉(mg)'].sum()
+            }
+            
+            # 建立動態 Prompt
+            health_prompt = f"""
+            你是一位毒舌但專業的私人營養師。請根據我今天的飲食數據進行分析：
+            1. 數據摘要：{total_data}
+            2. 參考目標：熱量 {target_cal}kcal, 鈉 {target_sodium}mg, 糖 {target_sugar}g, 纖維 {target_fiber}g。
+            
+            請執行以下任務：
+            - 點評：針對我今天表現最差（或超標最多）的一個參數進行「嚴厲」提醒。
+            - 讚美：針對我今天表現最好的一個參數給予鼓勵。
+            - 改善建議：根據今天的狀況，告訴我明天第一餐應該怎麼吃來補救（例如補鈉、補纖維）。
+            - 風險警告：分析目前的鈉、糖攝取對我身體（如水腫、血糖）的即時影響。
+            
+            請使用繁體中文，語氣要生動有趣且具備權威感。
+            """
+            
+            try:
+                # 呼叫 Gemini 3 Flash Preview
+                # 注意：這裡只需純文字分析，不需圖片
+                analysis_response = model.generate_content(health_prompt)
+                
+                # 使用 st.chat_message 或 info 呈現，更有對話感
+                with st.chat_message("assistant", avatar="🥗"):
+                    st.markdown(analysis_response.text)
+                    
+            except Exception as e:
+                st.error(f"分析報告生成失敗：{e}")
+else:
+    st.info("請先新增食物數據，AI 才能幫您分析報告喔！")
