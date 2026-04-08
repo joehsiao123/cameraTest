@@ -1,5 +1,5 @@
 import streamlit as st
-import pd as pd # 簡化寫法
+import pandas as pd # 簡化寫法
 
 # --- 1. 頁面配置 ---
 st.set_page_config(page_title="全方位健康助手", layout="wide")
