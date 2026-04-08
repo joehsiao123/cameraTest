@@ -1,105 +1,98 @@
 import streamlit as st
-import pandas as pd
+import pd as pd # 簡化寫法
 
 # --- 1. 頁面配置 ---
-st.set_page_config(page_title="營養追蹤邏輯測試", layout="wide")
+st.set_page_config(page_title="全方位健康助手", layout="wide")
 
 # --- 2. 初始化 Session State ---
 if 'daily_logs' not in st.session_state:
     st.session_state.daily_logs = []
 
-# --- 3. 側邊欄：目標設定與差距分析 ---
+# --- 3. 側邊欄：進階健康目標設定 ---
 with st.sidebar:
-    st.header("🎯 每日營養目標")
-    target_cal = st.number_input("熱量目標 (kcal)", value=2000)
-    target_pro = st.number_input("蛋白質目標 (g)", value=60)
-    target_carb = st.number_input("碳水目標 (g)", value=250)
-    target_fat = st.number_input("脂肪目標 (g)", value=55)
+    st.header("🎯 進階健康目標")
+    target_cal = st.number_input("熱量 (kcal)", value=2000)
     
+    with st.expander("微量與細項設定"):
+        target_pro = st.number_input("蛋白質 (g)", value=60)
+        target_fiber = st.number_input("膳食纖維 (g)", value=25, help="建議每日攝取 25-35g")
+        target_sodium = st.number_input("鈉含量 (mg)", value=2400, help="WHO 建議每日不超過 2400mg")
+        target_sugar = st.number_input("添加糖 (g)", value=50, help="建議不超過總熱量的 10%")
+        target_sat_fat = st.number_input("飽和脂肪 (g)", value=20)
+
     st.divider()
-    st.header("📊 達成進度分析")
+    st.header("📊 今日達成進度")
     
     if st.session_state.daily_logs:
         df = pd.DataFrame(st.session_state.daily_logs)
-        curr_cal = df['熱量(kcal)'].sum()
-        curr_pro = df['蛋白質(g)'].sum()
-        curr_carb = df['碳水(g)'].sum()
-        curr_fat = df['脂肪(g)'].sum()
-
-        # 熱量剩餘指標
-        rem_cal = target_cal - curr_cal
-        st.metric("熱量剩餘 (kcal)", f"{rem_cal:.0f}", delta=f"{rem_cal}", delta_color="normal" if rem_cal >= 0 else "inverse")
         
-        # 進度條
-        st.progress(min(curr_cal/target_cal, 1.0), text=f"熱量達成率: {int(curr_cal/target_cal*100)}%")
-
-        # 詳細差距顯示
-        def show_status(label, current, target, unit):
+        # 定義指標顯示函式
+        def health_metric(label, current, target, unit, inverse=False):
             diff = target - current
-            color = "green" if diff >= 0 else "red"
-            st.markdown(f"{label}: **{current:.1f}** / {target} {unit}  \n(剩餘: :{color}[{diff:.1f}])")
+            # 對於鈉、糖、飽和脂肪，超過目標（diff < 0）應該顯示紅色警告
+            is_warning = diff < 0 if not inverse else diff > 0
+            color = "inverse" if is_warning else "normal"
+            st.metric(label, f"{current:.1f} {unit}", delta=f"{diff:.1f} 剩餘", delta_color=color)
 
-        st.write("---")
-        show_status("🥩 蛋白質", curr_pro, target_pro, "g")
-        show_status("🍞 碳水", curr_carb, target_carb, "g")
-        show_status("🥑 脂肪", curr_fat, target_fat, "g")
+        health_metric("🔥 總熱量", df['熱量(kcal)'].sum(), target_cal, "kcal")
+        health_metric("🧂 鈉含量", df['鈉(mg)'].sum(), target_sodium, "mg")
+        health_metric("🍭 總糖分", df['糖(g)'].sum(), target_sugar, "g")
+        health_metric("🥬 纖維質", df['纖維(g)'].sum(), target_fiber, "g", inverse=True)
+        
+        st.progress(min(df['熱量(kcal)'].sum()/target_cal, 1.0))
     else:
-        st.info("請點擊右側按鈕加入測試數據")
+        st.info("尚無數據")
 
-# --- 4. 主頁面：固定範例測試 ---
-st.title("🧪 營養追蹤邏輯測試模式")
-st.info("目前已暫時註解相機功能，請使用下方預設範例進行測試。")
-
-# --- 註解掉的相機功能 ---
-# img_file = st.camera_input("拍照紀錄") 
-# -------------------------
-
-st.subheader("💡 點擊下方範例食物模擬紀錄")
+# --- 4. 主頁面：精心設計的健康範例 ---
+st.title("🛡️ 專業健康管理模式 (模擬)")
+st.write("我們設計了三種代表性的健康/非健康餐飲，請觀察參數變化：")
 
 col1, col2, col3 = st.columns(3)
 
-# 預設三組測試數據
+# 模擬高規格健康數據
 mock_data = {
-    "美式大早餐": {"cal": 850, "pro": 35, "carb": 45, "fat": 58},
-    "舒肥雞肉沙拉": {"cal": 320, "pro": 28, "carb": 12, "fat": 15},
-    "大杯珍珠奶茶": {"cal": 650, "pro": 3, "carb": 92, "fat": 30}
+    "藜麥鮭魚健身餐": {"cal": 550, "pro": 35, "carb": 45, "fat": 22, "fiber": 8.5, "sodium": 450, "sugar": 2},
+    "日式拉麵 (豚骨)": {"cal": 850, "pro": 25, "carb": 85, "fat": 38, "fiber": 2.0, "sodium": 2800, "sugar": 5},
+    "超商雞肉飯糰": {"cal": 220, "pro": 5, "carb": 42, "fat": 3, "fiber": 1.0, "sodium": 650, "sugar": 1}
 }
 
+def add_entry(name):
+    d = mock_data[name]
+    st.session_state.daily_logs.append({
+        "時間": "12:00", "食物": name, 
+        "熱量(kcal)": d["cal"], "蛋白質(g)": d["pro"], 
+        "糖(g)": d["sugar"], "纖維(g)": d["fiber"], "鈉(mg)": d["sodium"]
+    })
+    st.rerun()
+
 with col1:
-    st.image("https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400", caption="培根、蛋、吐司")
-    if st.button("加入：美式大早餐"):
-        d = mock_data["美式大早餐"]
-        st.session_state.daily_logs.append({"時間": "08:30", "食物": "美式大早餐", "熱量(kcal)": d["cal"], "蛋白質(g)": d["pro"], "碳水(g)": d["carb"], "脂肪(g)": d["fat"]})
-        st.rerun()
+    st.subheader("🟢 優質選擇")
+    st.write("**藜麥鮭魚餐**\n高纖維、低鈉、優質蛋白")
+    if st.button("加入紀錄", key="h1"): add_entry("藜麥鮭魚健身餐")
 
 with col2:
-    st.image("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400", caption="低卡雞肉、生菜")
-    if st.button("加入：舒肥雞肉沙拉"):
-        d = mock_data["舒肥雞肉沙拉"]
-        st.session_state.daily_logs.append({"時間": "12:15", "食物": "舒肥雞肉沙拉", "熱量(kcal)": d["cal"], "蛋白質(g)": d["pro"], "碳水(g)": d["carb"], "脂肪(g)": d["fat"]})
-        st.rerun()
+    st.subheader("🔴 隱形殺手")
+    st.write("**日式豚骨拉麵**\n**鈉含量極高**，幾乎一次超標")
+    if st.button("加入紀錄", key="h2"): add_entry("日式拉麵 (豚骨)")
 
 with col3:
-    st.image("https://images.unsplash.com/photo-1572049285918-6c8430b56877?w=400", caption="高糖、高碳水")
-    if st.button("加入：大杯珍珠奶茶"):
-        d = mock_data["大杯珍珠奶茶"]
-        st.session_state.daily_logs.append({"時間": "15:30", "食物": "大杯珍珠奶茶", "熱量(kcal)": d["cal"], "蛋白質(g)": d["pro"], "碳水(g)": d["carb"], "脂肪(g)": d["fat"]})
-        st.rerun()
+    st.subheader("🟡 便利選擇")
+    st.write("**雞肉飯糰**\n中規中矩，但纖維質明顯不足")
+    if st.button("加入紀錄", key="h3"): add_entry("超商雞肉飯糰")
 
-# --- 5. 數據表格 ---
+# --- 5. 數據分析報表 ---
 st.divider()
-st.subheader("📝 今日飲食清單 (可手動微調)")
+st.subheader("📝 詳細數據清單")
 if st.session_state.daily_logs:
     df_logs = pd.DataFrame(st.session_state.daily_logs)
-    edited_df = st.data_editor(df_logs, use_container_width=True)
+    st.data_editor(df_logs, use_container_width=True)
     
-    # 點擊按鈕同步手動編輯後的結果
-    if st.button("儲存修改並更新看板"):
-        st.session_state.daily_logs = edited_df.to_dict('records')
-        st.rerun()
-        
-    if st.button("🗑️ 全部清空"):
-        st.session_state.daily_logs = []
-        st.rerun()
-else:
-    st.write("尚未新增任何測試數據。")
+    # 額外的健康洞察
+    st.subheader("🔍 AI 健康建議")
+    total_sodium = df_logs['鈉(mg)'].sum()
+    if total_sodium > 2400:
+        st.warning("⚠️ 今日鈉攝取已超標！建議多喝水，並補充含鉀食物（如香蕉、菠菜）幫助排鈉。")
+    
+    total_fiber = df_logs['纖維(g)'].sum()
+    if total_fiber < 15:
+        st.info("🥬 纖維質攝取偏低，下午茶可以考慮吃一份水果或一小把堅果。")
