@@ -17,7 +17,7 @@ genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 def get_model():
     # 優先嘗試最新版本，如果失敗則自動尋找可用模型
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('gemini-robotics-er-1.5-preview')
         return model
     except:
         available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
