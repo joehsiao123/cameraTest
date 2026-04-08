@@ -1,15 +1,18 @@
 import streamlit as st
-from PIL import Image
+from streamlit_webrtc import webrtc_streamer
 
-st.title("手機鏡頭調用測試")
+st.title("強制調用 iPhone 後鏡頭")
 
-# 調用相機元件
-img_file = st.camera_input("請對準物品拍照")
+# 定義攝像頭約束條件
+# "environment" 代表後鏡頭，"user" 代表前鏡頭
+RTC_CONFIGURATION = {
+    "video": {
+        "facingMode": "environment",
+    }
+}
 
-if img_file:
-    # 將上傳的檔案轉換為圖片物件
-    img = Image.open(img_file)
-    
-    # 這裡可以進行圖片處理（例如 AI 辨識）
-    st.image(img, caption="已拍攝的照片")
-    st.write("圖片維度:", img.size)
+webrtc_streamer(
+    key="back-camera",
+    rtc_configuration=None, # 若不需要 STUN/TURN 伺服器則設為 None
+    media_stream_constraints=RTC_CONFIGURATION
+)
